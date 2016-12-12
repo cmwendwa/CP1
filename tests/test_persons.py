@@ -1,5 +1,5 @@
 import unittest
-from ..src.person import Person,Staff, Fellow
+from src.person import Person,Staff, Fellow
 
 
 class TddPersons(unittest.TestCase):

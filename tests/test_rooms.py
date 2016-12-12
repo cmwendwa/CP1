@@ -1,5 +1,5 @@
 import unittest
-from ..src.room import Room, Office,LivingSpace
+from src.room import Room, Office,LivingSpace
 
 
 

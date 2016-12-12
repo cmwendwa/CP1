@@ -1,5 +1,5 @@
 import unittest
-from ..src.amity import Amity
+from src.amity import Amity
 
 class Tdd_Amity(unittest.TestCase):
 
