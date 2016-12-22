@@ -428,7 +428,7 @@ class Amity(object):
 
                 if person.wants_accomodation == "Y":
                     self.reallocate_person(
-                        person.email, person.allocated_living)
+                        self.fellows[person.email], person.allocated_living)
 
     def validate_room_name(self, word):
         matches = re.match(r'^[A-Za-z][A-Za-z0-9]*$', word, re.IGNORECASE)

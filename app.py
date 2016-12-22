@@ -380,8 +380,8 @@ class AmityInteractive(cmd.Cmd):
     def do_quit(self, args):
         """
         Type to leave the app.
-        usage:
-            quit
+        usage: 
+            quit 
         """
         click.sech("Thank you and see you again. BYEBYE!",fg='cyan')
         exit()
