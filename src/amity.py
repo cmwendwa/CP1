@@ -45,7 +45,7 @@ class Amity(object):
 
                 return "Room created succesfully"
             else:
-                return "Room could not be created: name taken!"
+                return "Room could not be created: Room exists!"
 
         else:
             return -1
