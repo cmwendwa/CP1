@@ -12,13 +12,6 @@ class Person(object):
         self.email = email
         self.office = None
 
-    @abstractmethod
-    def person_type(self):
-        """"
-        Return the type of person this is(staff | fellow).
-
-        """
-
     def set_office(self, office):
         self.office = office
 
