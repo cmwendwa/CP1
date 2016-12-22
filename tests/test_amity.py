@@ -32,7 +32,7 @@ class Tdd_Amity(unittest.TestCase):
         # creating an already created room
         try_duplicate = self.amity.create_room('Winterfell', 'L')
         self.assertEqual(
-            try_duplicate, "Room could not be created: name taken!")
+            try_duplicate, "Room could not be created: Room exists!")
         new_room_count = len(self.amity.all_rooms)
         self.assertEqual(self.previous_room_count + 1, new_room_count)
 
