@@ -6,9 +6,13 @@ install:
 - pip install coveralls
 - pip install coverage
 script:
+<<<<<<< HEAD
 - nosetests --with-coverage
 after-success:
 - coveralls
+=======
+- nosetests --with-coverage --cover-package src
+>>>>>>> b9f4d5d9f1d5935a582d86ec51cf60b55939806d
 notifications:
   slack:
     secure: u9VzvMB0bkLlOWRXv8U6WX7MeSZ9UVFxLMI38HrLxHnHnN0+y4kyhWQkrYBX/L7H0owQmnxg9sU28HjhdXvMGfzDaL3F2gW9lSrVaQOAnkiScMsQy/v8bNcD3XHcm/wp00wqZU9VaDEB7ljylEpcayIyt+DS3yp/+tT8jqK9I8E8l3vyx5cIxJ3/z2ORhlO4oKyTC7PSvE6xM71zDwkpolNI13XO3vFgL86HhLYF7z6BPlXcRKT4pU7kh5xrg9gcrCXI3DQ6yHd5EvQLzOu4SRSxgB6OCGDAdO01BZ/pZ8aRrkv8G07Ht+owlTxo6DV3hWOjLzafHiCI5Ejm7dATTYDGyN9R9VEIMWcwq2J8dT9sCOJMBcxX1GhZPgEed9A0Qxv/OO6Fn7Mg9mZQhl0qlvakM47/rGj3qYA1RcmlMJ0LlCnxxoZp+4iWS9sVSQwKV5VC6mzzjSu/kzz6dBlKPJuxwrIo+73l9mwRxjxJsm/KRGuqWlUsLiI4WLUFfP2PxBo0QCzaP6rQFFMNOzmt2enQiMclBzfAzNHaOyuDiE1g8aWGFKl15Qo0FnIGdMqW5arxtuGK6sndtkZgDKZNlXdWYhx22WK2JntZrvWHHM4NKbrteFOcI35sVLG3f5qkOufYoc9d3Mu0q3qDqyiyTSCH3GrXFxvECJHYk/kbEYE=
