@@ -4,7 +4,7 @@ from src.amity import Amity
 import io
 
 
-class Tdd_Amity(unittest.TestCase):
+class AmityTest(unittest.TestCase):
 
     def setUp(self):
         self.amity = Amity()

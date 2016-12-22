@@ -69,15 +69,10 @@ class LivingSpace(Room):
     capacity = 4
 
     def __init__(self, room_name):
+        self.room_type ="LivingSpace"
         super(LivingSpace, self).__init__(room_name)
 
-    @property
-    def room_type(self):
-        """
-        Returns the room type
-
-        """
-        return "LivingSpace"
+    
 
 
 class Office(Room):
@@ -88,12 +83,6 @@ class Office(Room):
     capacity = 6
 
     def __init__(self, room_name):
+        self.room_type = "OfficeSpace"
         super(Office, self).__init__(room_name,)
 
-    @property
-    def room_type(self):
-        """
-        Returns the room type
-
-        """
-        return "OfficeSpace"

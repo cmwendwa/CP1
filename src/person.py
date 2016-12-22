@@ -32,26 +32,21 @@ class Staff(Person):
     """
 
     def __init__(self, name, email):
+        self.person_type = "Staff"
         super(Staff, self).__init__(name, email)
 
-    @property
-    def person_type(self):
-        """"
-        Return the type of person this is(staff | fellow).
-
-        """
-        return "Staff"
 
 
 class Fellow(Person):
     """
     Creates a fellow.
-
+    
     """
 
     living_space = None
 
     def __init__(self, name, email, wants_accomodation='N'):
+        self.person_type ="Fellow"
         self.wants_accomodation = wants_accomodation
 
         super(Fellow, self).__init__(name, email)
@@ -62,10 +57,3 @@ class Fellow(Person):
         else:
             return -1
 
-    @property
-    def person_type(self):
-        """"
-        Return the type of person this is(staff | fellow).
-
-        """
-        return "Fellow"
