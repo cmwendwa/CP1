@@ -174,9 +174,9 @@ class AmityInteractive(cmd.Cmd):
                 error_msg = args['<email>'] + " is not a valid email."
                 click.secho(error_msg, fg='red')
                 return
-            if amity.validate_room_name(args['<room_name>']) == "Invalid":
+            if amity.validate_room_name(args['<new_room>']) == "Invalid":
                 click.secho(
-                    name + " is not a valid room name, change and try again!!", fg='red')
+                    args['<new_room>'] + " is not a valid room name, change and try again!!", fg='red')
 
             email = args['<email>']
             new_room = args['<new_room>']
@@ -192,17 +192,20 @@ class AmityInteractive(cmd.Cmd):
                 elif amity.all_persons[email].person_type == "Staff":
                     person = amity.staff[email]
                     if person.office == new_room:
-                        click.secho("Been here all along,kindly le be", fg='cyan')
+                        click.secho("Been here all along,kindly let be", fg='cyan')
                         return
-                else:
-                    click.secho("An alien type discovered!!", fg='red')
-                    return
+                    else:
+                        click.secho("An alien type discovered!!", fg='red')
+                        return
 
-            amity.reallocate_person(args['<email>'], args['<new_room>'])
+            state = amity.reallocate_person(amity.all_persons[args['<email>']], args['<new_room>'])
+            if not state == -1:
+                click.secho("Room reallocation successfully done", fg='green')
+
 
         except:
             click.secho("An unexpected error occured while running the comand",fg='red')
-
+    
     @amity_docopt
     def do_load_people(self, args):
         """
@@ -387,14 +390,14 @@ class AmityInteractive(cmd.Cmd):
         usage: 
             quit 
         """
-        click.sech("Thank you and see you again. BYEBYE!",fg='cyan')
+        click.secho("Thank you and see you again. BYEBYE!",fg='cyan')
         exit()
 
 if __name__ == '__main__':
-    try:
+    #try:
         
-        AmityInteractive().cmdloop()
+    AmityInteractive().cmdloop()
 
-    except:
-        pass
+   # except:
+        #pass
 
