@@ -335,7 +335,7 @@ class Amity(object):
             presentation += "Office Allocations\n"
             for office in offices:
                 presentation += office['room'].capitalize() +"\n"
-                presentation + ="Members: \n"
+                presentation +="Members: \n"
                 presentation += ','.join(office['names'])
 
         presentation += "LIVING SPACES \n\n"
