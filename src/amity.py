@@ -11,7 +11,6 @@ from .person import Fellow, Staff
 from .db_organisation.db_logic import DbManager, Base, Rooms, Persons
 
 
-
 class Amity(object):
     """
     Amity class implementing the logic of a facility where it has rooms which can be offices or living spaces. An office can occupy a maximum of 6 people. A living space can inhabit a maximum of 4 people
@@ -99,13 +98,15 @@ class Amity(object):
         if new_room == None:
             return -1
 
-        if not new_room in  self.all_rooms.keys():
-            click.secho("Given room not in Amity",fg='red')
+        if not new_room in self.all_rooms.keys():
+            click.secho("Given room not in Amity", fg='red')
             return -1
         room_type = self.all_rooms[new_room]['room'].room_type
         if room_type == "OfficeSpace":
             if person.office == None:
-                return "Could not reallocate"
+                click.secho(
+                    "Could not reallocate, person had no prior office.", fg='red')
+                return -1
             else:
                 self.deallocate_person(person, room_type)
                 self.assign_room(person, new_room)
@@ -113,7 +114,9 @@ class Amity(object):
                 return "Reallocated"
         elif room_type == "LivingSpace":
             if person.living_space == None:
-                return "Could not reallocate"
+                click.secho(
+                    "Could not reallocate, person had no prior living space", fg='red')
+                return -1
             else:
                 self.deallocate_person(person, room_type)
                 self.assign_room(person, new_room)
@@ -127,12 +130,14 @@ class Amity(object):
         if room_type == "OfficeSpace":
             room = person.office
             self.offices[room]['room'].deallocate_room_space()
-            self.offices[room]['occupants'].remove(person.name)
+            occupant = person.name + "\t" + person.email
+            self.offices[room]['occupants'].remove(occupant)
             person.set_office(None)
         elif room_type == "LivingSpace":
             room = person.living_space
+            occupant = person.name + "\t" + person.email
             self.living_spaces[room]['room'].deallocate_room_space()
-            self.living_spaces[room]['occupants'].remove(person.name)
+            self.living_spaces[room]['occupants'].remove(occupant)
             person.set_livingspace(None)
 
     def assign_room(self, person, room):
@@ -142,13 +147,15 @@ class Amity(object):
         """
         if self.all_rooms[room]['room'].room_type == "OfficeSpace":
             person.set_office(room)
+            occupant = person.name + "\t" + person.email
             self.offices[room]['room'].allocate_room_space()
-            self.offices[room]['occupants'].append(person.name)
+            self.offices[room]['occupants'].append(occupant)
 
         elif self.all_rooms[room]['room'].room_type == "LivingSpace":
             if not person.set_livingspace(self.living_spaces[room]['room'].name) == -1:
+                occupant = person.name + "\t" + person.email
                 self.living_spaces[room]['room'].allocate_room_space()
-                self.living_spaces[room]['occupants'].append(person.name)
+                self.living_spaces[room]['occupants'].append(occupant)
 
     def remove_room(self):  # pragma: no cover
         pass  # pragma: no cover
@@ -214,10 +221,12 @@ class Amity(object):
         if self.all_rooms[random_room]['room'].room_type == "LivingSpace":
             person.set_livingspace(
                 self.living_spaces[random_room]['room'].name)
-            room_set[random_room]['occupants'].append(person.name)
+            occupant = person.name + "\t" + person.email
+            room_set[random_room]['occupants'].append(occupant)
         elif self.all_rooms[random_room]['room'].room_type == "OfficeSpace":
+            occupant = person.name + "\t" + person.email
             person.set_office(self.offices[random_room]['room'].name)
-            room_set[random_room]['occupants'].append(person.name)
+            room_set[random_room]['occupants'].append(occupant)
 
     def load_pips_from_text_file(self, file_access=None):
         """
@@ -244,9 +253,9 @@ class Amity(object):
                                     2], typ=person[3], wants_accomodation=person[4])
 
         except FileNotFoundError:
-            click.secho("Sorry we could not find the sample.txt file to load people from")
+            click.secho(
+                "Sorry we could not find the sample.txt file to load people from")
             return -1
-
 
     def get_print_room_data(self, room):
         """
@@ -275,8 +284,9 @@ class Amity(object):
 
         if file:
             file = file + ".txt"
-            formated = self.organize_data({'offices': offices, 'living': living_spaces})
-            with open(file,'w') as output_file:
+            formated = self.organize_data(
+                {'offices': offices, 'living': living_spaces})
+            with open(file, 'w') as output_file:
                 output_file.write(formated)
             click.secho("Data written to file: " + file, fg='green')
 
@@ -305,54 +315,53 @@ class Amity(object):
 
                 unallocated_to_living.append([name, identifier, email])
 
-
         if file:
-            file = file +".txt"
+            file = file + ".txt"
 
-            with open(file,'w') as output_file:
+            with open(file, 'w') as output_file:
                 output_file.write("UNALLOCATED TO OFFICE\n")
                 for person in unallocated_to_office:
-                    output_file.write(person[0]+" "+person[1]+" "+person[2]+"\n")
+                    output_file.write(
+                        person[0] + " " + person[1] + " " + person[2] + "\n")
                 output_file.write("\nUNALLOCATED TO LIVING\n")
                 for person in unallocated_to_living:
-                    output_file.write(person[0]+" "+person[1]+" "+person[2]+"\n")
-        
+                    output_file.write(
+                        person[0] + " " + person[1] + " " + person[2] + "\n")
+
         if len(unallocated_to_office) == 0 and len(unallocated_to_living) == 0:
             return -1
-        
+
         return {'offices': unallocated_to_office, "living": unallocated_to_living}
 
-    def organize_data(self,data):
+    def organize_data(self, data):
         """
         Formats data to be written to a text file or printed to screen
         """
         presentation = ""
 
         offices = data['offices']
-        living =  data['living']
-        
+        living = data['living']
+
         presentation += "OFFICE \n\n"
         if len(offices) == 0:
             presentation += "No Office allocations\n"
 
-        else: 
+        else:
             presentation += "Office Allocations\n"
             for office in offices:
-                presentation += office['room'].capitalize() +"\n"
-                presentation +="Members: \n"
+                presentation += office['room'].capitalize() + "\n"
+                presentation += "Members: \n"
                 presentation += ','.join(office['names'])
 
         presentation += "LIVING SPACES \n\n"
         if len(offices) == 0:
             presentation += "No Living space allocations\n"
 
-
-        else: 
+        else:
             presentation += "Office Allocations\n"
         for space in living:
-            presentation += living['room'].capitalize() +"\n"
+            presentation += living['room'].capitalize() + "\n"
             presentation += ','.join(living['names'])
-
 
         return presentation
 
@@ -369,7 +378,7 @@ class Amity(object):
 
         Base.metadata.bind = amity_db.engine
         amity_session = amity_db.session()
-        
+
         for person in self.all_persons:
             if self.all_persons[person].person_type == "Fellow":
                 wants_accomodation = self.fellows[person].wants_accomodation
@@ -398,12 +407,12 @@ class Amity(object):
 
     def load_state_from_db(self, db_name):
         """
-        
+
         Loads application status from an sqlite database
 
         """
         if not os.path.exists(db_name + '.sqlite'):
-            click.secho("Provided database is not existent",fg='red')
+            click.secho("Provided database is not existent", fg='red')
             return -1
         self.del_me()
         engine = create_engine('sqlite:///' + db_name + '.sqlite')
@@ -417,7 +426,7 @@ class Amity(object):
             if room.room_type == "LivingSpace":
                 room_type = 'L'
             elif room.room_type == "OfficeSpace":
-                room_type ='O'
+                room_type = 'O'
             self.create_room(room.name, room_type)
 
         for person in all_people:
@@ -426,9 +435,11 @@ class Amity(object):
             self.all_persons[person.email].person_id = person.person_id
 
             if self.all_persons[person.email].person_type == "Staff":
-                self.reallocate_person(self.staff[person.email], person.allocated_office)
+                self.reallocate_person(
+                    self.staff[person.email], person.allocated_office)
             elif self.all_persons[person.email].person_type == "Fellow":
-                self.reallocate_person(self.fellows[person.email], person.allocated_office)
+                self.reallocate_person(
+                    self.fellows[person.email], person.allocated_office)
 
                 if person.wants_accomodation == "Y":
                     self.reallocate_person(
@@ -448,42 +459,43 @@ class Amity(object):
         else:
             return "Invalid"
 
-    def validate_db_name(self,word):
-        matches = re.match(r'^[a-zA-Z0-9]([a-zA-Z0-9_])*[a-zA-Z0-9]$', word, re.IGNORECASE)
+    def validate_db_name(self, word):
+        matches = re.match(
+            r'^[a-zA-Z0-9]([a-zA-Z0-9_])*[a-zA-Z0-9]$', word, re.IGNORECASE)
         if matches:
             return "Valid"
         else:
             return "Invalid"
 
-    def validate_person_type(self,word):
+    def validate_person_type(self, word):
         matches = re.match(r'^staff$|^fellow$', word, re.IGNORECASE)
-        
+
         if matches:
             return "Valid"
         else:
             return "Invalid"
 
-    def validate_room_type(self,word):
+    def validate_room_type(self, word):
         matches = re.match(r'^o$|^l$', word, re.IGNORECASE)
         if matches:
             return "Valid"
         else:
             return "Invalid"
-    def validate_wants_accommodation(self,word):
+
+    def validate_wants_accommodation(self, word):
         matches = re.match(r'^N$|^Y$', word, re.IGNORECASE)
         if matches:
             return "Valid"
         else:
             return "Invalid"
-    def validate_email(self,email):
-        matches = re.match(r'(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)', email, re.IGNORECASE)
+
+    def validate_email(self, email):
+        matches = re.match(
+            r'(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)', email, re.IGNORECASE)
         if matches:
             return "Valid"
         else:
             return "Invalid"
-
-
-
 
     def del_me(self):
         self.offices = {}
@@ -498,5 +510,6 @@ class FileAccessWrapper:
 
     def open(self):
         return open(self.filenname, "r")
+
     def writeline(text):
         self

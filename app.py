@@ -169,48 +169,46 @@ class AmityInteractive(cmd.Cmd):
         Usage:
           reallocate_person <email> <new_room>
         """
-        try:
-            import pdb
-            pdb.set_trace()
-            if amity.validate_email(args['<email>']) == "Invalid":
-                error_msg = args['<email>'] + " is not a valid email."
-                click.secho(error_msg, fg='red')
-                return
-            if amity.validate_room_name(args['<new_room>']) == "Invalid":
-                click.secho(
-                    args['<new_room>'] + " is not a valid room name, change and try again!!", fg='red')
-
-            email = args['<email>']
-            new_room = args['<new_room>']
-            if not email in amity.all_persons:
-                click.secho(email + " not in the system!!", fg='red')
-                return
-            else:
-                if amity.all_persons[email].person_type == "Fellow":
-                    person = amity.fellows[email]
-                    if person.office == new_room or person.living_space == new_room:
-                        click.secho(
-                            "Been here all along,kindly let be!", fg='cyan')
-                        return
-                elif amity.all_persons[email].person_type == "Staff":
-                    person = amity.staff[email]
-                    if person.office == new_room:
-
-                        click.secho(
-                            "Been here all along,kindly let be", fg='cyan')
-                        return
-                    else:
-                        click.secho("An alien type discovered!!", fg='red')
-                        return
-
-            state = amity.reallocate_person(
-                amity.all_persons[args['<email>']], args['<new_room>'])
-            if not state == -1:
-                click.secho("Room reallocation successfully done", fg='green')
-        except:
-
+        # try:
+        if amity.validate_email(args['<email>']) == "Invalid":
+            error_msg = args['<email>'] + " is not a valid email."
+            click.secho(error_msg, fg='red')
+            return
+        if amity.validate_room_name(args['<new_room>']) == "Invalid":
             click.secho(
-                "An unexpected error occured while running the comand", fg='red')
+                args['<new_room>'] + " is not a valid room name, change and try again!!", fg='red')
+
+        email = args['<email>']
+        new_room = args['<new_room>']
+        if not email in amity.all_persons:
+            click.secho(email + " not in the system!!", fg='red')
+            return
+        else:
+            if amity.all_persons[email].person_type == "Fellow":
+                person = amity.fellows[email]
+                if person.office == new_room or person.living_space == new_room:
+                    click.secho(
+                        "Been here all along,kindly let be!", fg='cyan')
+                    return
+            elif amity.all_persons[email].person_type == "Staff":
+                person = amity.staff[email]
+                if person.office == new_room:
+
+                    click.secho(
+                        "Been here all along,kindly let be", fg='cyan')
+                    return
+                else:
+                    click.secho("An alien type discovered!!", fg='red')
+                    return
+
+        state = amity.reallocate_person(
+            amity.all_persons[args['<email>']], args['<new_room>'])
+        if not state == -1:
+            click.secho("Room reallocation successfully done", fg='green')
+        # except:
+
+            # click.secho(
+            #"An unexpected error occured while running the comand", fg='red')
 
     @amity_docopt
     def do_load_people(self, args):
@@ -255,7 +253,7 @@ class AmityInteractive(cmd.Cmd):
                     for name in office['names']:
                         click.secho(name, fg='white')
 
-                click.secho("LIVING SPACES")
+                click.secho("LIVING SPACES", fg='cyan', bold=True)
                 for room in living:
                     click.secho(room['room'].capitalize(),
                                 fg='green', bold=True)
@@ -400,9 +398,9 @@ class AmityInteractive(cmd.Cmd):
         exit()
 
 if __name__ == '__main__':
-    try:
+    # try:
 
-        AmityInteractive().cmdloop()
+    AmityInteractive().cmdloop()
 
-    except:
-        pass
+    # except:
+    # pass
