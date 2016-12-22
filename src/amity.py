@@ -1,5 +1,6 @@
 import os
 import re
+import click
 from random import randint
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -8,6 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from .room import Office, LivingSpace
 from .person import Fellow, Staff
 from .db_organisation.db_logic import DbManager, Base, Rooms, Persons
+
 
 
 class Amity(object):
@@ -23,6 +25,10 @@ class Amity(object):
     staff = {}
 
     def create_room(self, name, typ):
+        """
+        Creates a room in Amity
+
+        """
         if typ == "O":
             if not name in self.all_rooms.keys():
                 new_room = Office(name)
@@ -45,6 +51,10 @@ class Amity(object):
             return -1
 
     def add_person(self, name, email, typ, wants_accomodation='N'):
+        """
+        Adds a person to Amity
+
+        """
         if typ == "FELLOW":
             if not email in self.all_persons.keys():
                 new_fellow = Fellow(name, email, wants_accomodation)
@@ -65,6 +75,9 @@ class Amity(object):
             return -1
 
     def allocate_room(self, person):
+        """
+        Assigns a person in Amity to a room in Amity
+        """
         if self.unallocated_spaces[0] == 0:
             return "No office space available"
         self.random_assign(person, self.offices)
@@ -77,6 +90,14 @@ class Amity(object):
                     self.random_assign(person, self.living_spaces)
 
     def reallocate_person(self, person, new_room):
+        """
+        Reallocates a person in Amity to A room in Amity. A person can be a staff
+        being reallocated to new office or a fellow being reallocated to a new office or living space.
+        (Room change)
+
+        """
+        if new_room == None:
+            return -1
         room_type = self.all_rooms[new_room]['room'].room_type
         if room_type == "OfficeSpace":
             if person.office == None:
@@ -96,6 +117,9 @@ class Amity(object):
                 return "Reallocated"
 
     def deallocate_person(self, person, room_type):
+        """
+        Deallocates a person, given a person and the type of room to deallocate
+        """
         if room_type == "OfficeSpace":
             room = person.office
             self.offices[room]['room'].deallocate_room_space()
@@ -108,6 +132,10 @@ class Amity(object):
             person.set_livingspace(None)
 
     def assign_room(self, person, room):
+        """
+        Assigns a room given a person and the room to assign
+
+        """
         if self.all_rooms[room]['room'].room_type == "OfficeSpace":
             person.set_office(room)
             self.offices[room]['room'].allocate_room_space()
@@ -126,6 +154,10 @@ class Amity(object):
 
     @property
     def all_rooms(self):
+        """
+        Returns all the rooms in amity
+
+        """
         all_rooms = {}
         all_rooms.update(self.offices)
         all_rooms.update(self.living_spaces)
@@ -133,6 +165,10 @@ class Amity(object):
 
     @property
     def all_persons(self):
+        """
+        Returns all the people in amity
+
+        """
         all_persons = {}
         all_persons.update(self.staff)
         all_persons.update(self.fellows)
@@ -140,6 +176,10 @@ class Amity(object):
 
     @property
     def unallocated_spaces(self):
+        """
+        Returns the available space in amity
+
+        """
         unallocated_offices = 0
         for office in self.offices:
             unallocated_offices += self.offices[
@@ -152,12 +192,18 @@ class Amity(object):
         return [unallocated_offices, unallocated_living]
 
     def random_select(self, room_set):
+        """
+        Randomly selects a room key given a set of keys
+        """
         set_size = len(room_set)
         set_keys = list(room_set.keys())
         random_key = set_keys[randint(0, set_size - 1)]
         return random_key
 
     def random_assign(self, person, room_set):
+        """
+        Randomly assigns a person to a room given a person and a set of rooms
+        """
         random_room = self.random_select(room_set)
         while room_set[random_room]['room'].allocate_room_space() == -1:
             random_room = self.random_select(room_set)  # pragma: no cover
@@ -170,30 +216,47 @@ class Amity(object):
             room_set[random_room]['occupants'].append(person.name)
 
     def load_pips_from_text_file(self, file_access=None):
-        people = []
-        if file_access == None:
-            filename = "sample.txt"
-            file_access = FileAccessWrapper(filename)
+        """
+        Loads a list of people from a text file
 
-        with file_access.open() as sf:
-            lines = sf.readlines()
-            for item in lines:
-                people.append(item.split())
-        for person in people:
-            if len(person) == 4:
-                #re.sub(' +', ' ', person)
-                self.add_person(name=str(' '.join(person[:2])), email=person[
-                                2], typ=person[3])
-            elif len(person) == 5:
-                self.add_person(name=str(' '.join(person[:2])), email=person[
-                                2], typ=person[3], wants_accomodation=person[4])
+        """
+        try:
+            people = []
+            if file_access == None:
+                filename = "sample.txt"
+                file_access = FileAccessWrapper(filename)
+
+            with file_access.open() as sf:
+                lines = sf.readlines()
+                for item in lines:
+                    people.append(item.split())
+            for person in people:
+                if len(person) == 4:
+                    #re.sub(' +', ' ', person)
+                    self.add_person(name=str(' '.join(person[:2])), email=person[
+                                    2], typ=person[3])
+                elif len(person) == 5:
+                    self.add_person(name=str(' '.join(person[:2])), email=person[
+                                    2], typ=person[3], wants_accomodation=person[4])
+
+        except FileNotFoundError:
+            click.secho("Sorry we could not find the sample.txt file to load people from")
+            return -1
+
 
     def get_print_room_data(self, room):
+        """
+        Returns a single room's data[name and occupants] given a room.
+        """
         habitants = self.all_rooms[room]['occupants']
 
         return {'room': room, 'names': habitants}
 
     def get_print_allocations_data(self, file=None):
+        """
+        Handles data about allocations in Amity, can print the data or send it to a text file.
+
+        """
         living_spaces = []
         offices = []
         for room in self.living_spaces.keys():
@@ -206,9 +269,20 @@ class Amity(object):
                 self.offices[room]['room'].name)
             offices.append(room_data)
 
+        if file:
+            file = file + ".txt"
+            formated = self.organize_data({'offices': offices, 'living': living_spaces})
+            with open(file,'w') as output_file:
+                output_file.write(formated)
+            click.secho("Data written to file: " + file, fg='green')
+
         return {'offices': offices, 'living': living_spaces}
 
     def get_print_unallocated_data(self, file=None):
+        """
+        Prints unallocated people to screen or writes the same to a file if one is provided
+
+        """
         unallocated_to_office = []
         for person in self.all_persons.keys():
             if self.all_persons[person].office == None:
@@ -220,37 +294,91 @@ class Amity(object):
 
         unallocated_to_living = []
         for person in self.fellows.keys():
-            if self.fellows[person].wants_accomodation == 'N':
-                continue
-            elif self.fellows[person].wants_accomodation == 'Y':
-                if self.fellows[person].living_space == None:
-                    name = self.fellows[person].name
-                    identifier = self.fellows[person].person_id
-                    email = self.fellows[person].email
-                    unallocated_to_living.append([name, identifier, email])
+            if self.fellows[person].office == None:
+                name = self.fellows[person].name
+                identifier = self.fellows[person].person_id
+                email = self.fellows[person].email
+
+                unallocated_to_living.append([name, identifier, email])
+
+
+        if file:
+            file = file +".txt"
+
+            with open(file,'w') as output_file:
+                output_file.write("UNALLOCATED TO OFFICE\n")
+                for person in unallocated_to_office:
+                    output_file.write(person[0]+" "+person[1]+" "+person[2]+"\n")
+                output_file.write("\nUNALLOCATED TO LIVING\n")
+                for person in unallocated_to_living:
+                    output_file.write(person[0]+" "+person[1]+" "+person[2]+"\n")
+        
+        if len(unallocated_to_office) == 0 and len(unallocated_to_living) == 0:
+            return -1
+        
         return {'offices': unallocated_to_office, "living": unallocated_to_living}
 
+    def organize_data(self,data):
+        """
+        Formats data to be written to a text file or printed to screen
+        """
+        presentation = ""
+
+        offices = data['offices']
+        living =  data['living']
+        
+        presentation += "OFFICE \n\n"
+        if len(offices) == 0:
+            presentation += "No Office allocations\n"
+
+        else: 
+            presentation += "Office Allocations\n"
+            for office in offices:
+                presentation += office['room'].capitalize() +"\n"
+                presentation + ="Members: \n"
+                presentation += ','.join(office['names'])
+
+        presentation += "LIVING SPACES \n\n"
+        if len(offices) == 0:
+            presentation += "No Living space allocations\n"
+
+
+        else: 
+            presentation += "Office Allocations\n"
+        for space in living:
+            presentation += living['room'].capitalize() +"\n"
+            presentation += ','.join(living['names'])
+
+
+        return presentation
+
     def save_state_to_db(self, db_name=None):
+        """
+        Saves application's current state to an sqlite database
+        """
+        if os.path.exists('amity_db.sqlite'):
+            os.remove('amity_db.sqlite')
         if db_name == None:
             amity_db = DbManager()
         else:
             amity_db = DbManager(db_name)
 
-        Base.metadata.bind = db.engine
+        Base.metadata.bind = amity_db.engine
         amity_session = amity_db.session()
-
+        
         for person in self.all_persons:
-            if self.all_persons[person].person_type == "FELLOW":
-                wants_accomodation = person.wants_accomodation
-            elif self.all_persons[person].person_type == "STAFF":
+            if self.all_persons[person].person_type == "Fellow":
+                wants_accomodation = self.fellows[person].wants_accomodation
+                allocated_living = self.fellows[person].living_space
+            elif self.all_persons[person].person_type == "Staff":
                 wants_accomodation = None
+                allocated_living = None
 
             person_db = Persons(person_id=self.all_persons[person].person_id,
-                                email=self.all_persons[person.email],
+                                email=self.all_persons[person].email,
                                 name=self.all_persons[person].name,
                                 wants_accomodation=wants_accomodation,
-                                allocated_living=self.all_persons[
-                                    person].living_space,
+                                allocated_living=allocated_living,
                                 allocated_office=self.all_persons[
                                     person].office,
                                 person_type=self.all_persons[person].person_type)
@@ -259,34 +387,44 @@ class Amity(object):
 
         for room in self.all_rooms:
             room_db = Rooms(name=self.all_rooms[room]['room'].name,
-                            room_type=self.all_rooms[room]['room'])
+                            room_type=self.all_rooms[room]['room'].room_type)
             amity_session.merge(room_db)
 
             amity_session.commit()
 
     def load_state_from_db(self, db_name):
-        if not os.path.exists('sqlite:///' + db_name + '.sqlite'):
-            return
+        """
+        
+        Loads application status from an sqlite database
+
+        """
+        if not os.path.exists(db_name + '.sqlite'):
+            click.secho("Provided database is not existent",fg='red')
+            return -1
         self.del_me()
         engine = create_engine('sqlite:///' + db_name + '.sqlite')
         Session = sessionmaker()
         Session.configure(bind=engine)
         session = Session()
-        all_people = session.query(People).all()
+        all_people = session.query(Persons).all()
         all_rooms = session.query(Rooms).all()
 
         for room in all_rooms:
-            self.create_room(room.name, room.room_type)
+            if room.room_type == "LivingSpace":
+                room_type = 'L'
+            elif room.room_type == "OfficeSpace":
+                room_type ='O'
+            self.create_room(room.name, room_type)
 
         for person in all_people:
             self.add_person(person.name, person.email,
-                            person.person_type, person.wants_accomodation)
+                            person.person_type.upper(), person.wants_accomodation)
             self.all_persons[person.email].person_id = person.person_id
 
-            if person.person_type == "Staff":
-                self.reallocate_person(person.email, person.allocated_office)
-            elif person.person_type == "Fellow":
-                self.reallocate_person(person.email, person.allocated_office)
+            if self.all_persons[person.email].person_type == "Staff":
+                self.reallocate_person(self.staff[person.email], person.allocated_office)
+            elif self.all_persons[person.email].person_type == "Fellow":
+                self.reallocate_person(self.fellows[person.email], person.allocated_office)
 
                 if person.wants_accomodation == "Y":
                     self.reallocate_person(
@@ -327,6 +465,21 @@ class Amity(object):
             return "Valid"
         else:
             return "Invalid"
+    def validate_wants_accommodation(self,word):
+        matches = re.match(r'^N$|^Y$', word, re.IGNORECASE)
+        if matches:
+            return "Valid"
+        else:
+            return "Invalid"
+    def validate_email(self,email):
+        matches = re.match(r'(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)', email, re.IGNORECASE)
+        if matches:
+            return "Valid"
+        else:
+            return "Invalid"
+
+
+
 
     def del_me(self):
         self.offices = {}
@@ -341,3 +494,5 @@ class FileAccessWrapper:
 
     def open(self):
         return open(self.filenname, "r")
+    def writeline(text):
+        self

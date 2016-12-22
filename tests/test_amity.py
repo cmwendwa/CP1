@@ -47,9 +47,10 @@ class Tdd_Amity(unittest.TestCase):
             "Tyrion", "tyrion@got.world", "FELLOW")
         self.assertTrue(
             "tyrion@got.world" in self.amity.all_persons)
-        add_existing = self.amity.add_person("Tyrion", "tyrion@got.world", "FELLOW")
+        add_existing = self.amity.add_person(
+            "Tyrion", "tyrion@got.world", "FELLOW")
 
-        self.assertEqual(add_existing,"Email already used!")
+        self.assertEqual(add_existing, "Email already used!")
 
     def test_adding_staff(self):
         self.assertFalse(
@@ -58,9 +59,10 @@ class Tdd_Amity(unittest.TestCase):
 
         self.assertTrue(
             "tyrion@got.world" in self.amity.all_persons)
-        add_existing = self.amity.add_person("Tyrion", "tyrion@got.world", "STAFF")
+        add_existing = self.amity.add_person(
+            "Tyrion", "tyrion@got.world", "STAFF")
 
-        self.assertEqual(add_existing,"Email already used!")
+        self.assertEqual(add_existing, "Email already used!")
 
     def test_adding_person_with_invalid_person_type(self):
         self.assertFalse("missandei@got.world" in self.amity.all_persons)
@@ -132,13 +134,13 @@ class Tdd_Amity(unittest.TestCase):
                                                             KELLY McGUIRE STAFF KELLY McGUIRE STAFF"""))
 
     def test_get_print_data_methods(self):
-      self.assertFalse("Kingslanding" in self.amity.all_rooms)
-      self.amity.create_room("Kingslanding", "O")
-      self.assertTrue("Kingslanding" in self.amity.all_rooms)
-      self.assertFalse("Winterfell" in self.amity.all_rooms)
-      self.amity.create_room("Winterfell", "L")
-      self.assertTrue("Winterfell" in self.amity.all_rooms)
-      self.amity.load_pips_from_text_file(FakeFileWrapper(u"""OLUWAFEMI SULE olu@amity.com FELLOW Y
+        self.assertFalse("Kingslanding" in self.amity.all_rooms)
+        self.amity.create_room("Kingslanding", "O")
+        self.assertTrue("Kingslanding" in self.amity.all_rooms)
+        self.assertFalse("Winterfell" in self.amity.all_rooms)
+        self.amity.create_room("Winterfell", "L")
+        self.assertTrue("Winterfell" in self.amity.all_rooms)
+        self.amity.load_pips_from_text_file(FakeFileWrapper(u"""OLUWAFEMI SULE olu@amity.com FELLOW Y
                                                             DOMINIC WALTERS domi@amity.com STAFF
                                                             SIMON PATTERSON simo@amity.com FELLOW Y
                                                             MARI LAWRENCE mari@amity.com FELLOW Y
@@ -147,55 +149,67 @@ class Tdd_Amity(unittest.TestCase):
                                                             TANA LOPEZ tana@amity.com FELLOW Y
                                                             TINA LOPELA tina@amity.com FELLOW N
                                                             KELLY McGUIRE STAFF KELLY McGUIRE STAFF"""))
-      data = self.amity.get_print_room_data("Kingslanding")
-      self.assertEqual(data['room'],'Kingslanding')
-      self.assertEqual(len(data['names']),6)
+        data = self.amity.get_print_room_data("Kingslanding")
+        self.assertEqual(data['room'], 'Kingslanding')
+        self.assertEqual(len(data['names']), 6)
 
-      data2 = self.amity.get_print_allocations_data()
-      print(data2)
-      self.assertEqual(len(data2['offices']),1)
-      self.assertEqual(len(data2['living']),1)
+        data2 = self.amity.get_print_allocations_data()
+        print(data2)
+        self.assertEqual(len(data2['offices']), 1)
+        self.assertEqual(len(data2['living']), 1)
 
-      data3 = self.amity.get_print_unallocated_data()
-      self.assertNotEqual(data3['living'],None)
-      self.assertNotEqual(data3['offices'],None)
-      self.amity.load_pips_from_text_file()
+        data3 = self.amity.get_print_unallocated_data()
+        self.assertNotEqual(data3['living'], None)
+        self.assertNotEqual(data3['offices'], None)
+        self.amity.load_pips_from_text_file()
 
     def test_validation_methods(self):
-        self.assertEqual(self.amity.validate_db_name("db_mine"),"Valid")
-        self.assertEqual(self.amity.validate_db_name("db5"),"Valid")
-        self.assertEqual(self.amity.validate_db_name("5db"),"Valid")
-        self.assertEqual(self.amity.validate_db_name("db-5"),"Invalid")
-        
-        self.assertEqual(self.amity.validate_db_name("&db"),"Invalid")
+        self.assertEqual(self.amity.validate_db_name("db_mine"), "Valid")
+        self.assertEqual(self.amity.validate_db_name("db5"), "Valid")
+        self.assertEqual(self.amity.validate_db_name("5db"), "Valid")
+        self.assertEqual(self.amity.validate_db_name("db-5"), "Invalid")
 
+        self.assertEqual(self.amity.validate_db_name("&db"), "Invalid")
 
-        self.assertEqual(self.amity.validate_person_name("name"),"Valid")
-        self.assertEqual(self.amity.validate_person_name("name1"),"Invalid")
-        self.assertEqual(self.amity.validate_person_name("name_"),"Invalid")
+        self.assertEqual(self.amity.validate_person_name("name"), "Valid")
+        self.assertEqual(self.amity.validate_person_name("name1"), "Invalid")
+        self.assertEqual(self.amity.validate_person_name("name_"), "Invalid")
 
-        self.assertEqual(self.amity.validate_room_name("valhalla1"),"Valid")
-        self.assertEqual(self.amity.validate_room_name("2valhall"),"Invalid")
-        self.assertEqual(self.amity.validate_room_name("valhall_1"),"Invalid")
+        self.assertEqual(self.amity.validate_room_name("valhalla1"), "Valid")
+        self.assertEqual(self.amity.validate_room_name("2valhall"), "Invalid")
+        self.assertEqual(self.amity.validate_room_name("valhall_1"), "Invalid")
 
-        self.assertEqual(self.amity.validate_room_type("o"),"Valid")
-        self.assertEqual(self.amity.validate_room_type("l"),"Valid")
-        self.assertEqual(self.amity.validate_room_type("O"),"Valid")
-        self.assertEqual(self.amity.validate_room_type("L"),"Valid")
-        self.assertEqual(self.amity.validate_room_type("living"),"Invalid")
-        self.assertEqual(self.amity.validate_room_type("office"),"Invalid")
-        self.assertEqual(self.amity.validate_room_type("jjj"),"Invalid")
+        self.assertEqual(self.amity.validate_room_type("o"), "Valid")
+        self.assertEqual(self.amity.validate_room_type("l"), "Valid")
+        self.assertEqual(self.amity.validate_room_type("O"), "Valid")
+        self.assertEqual(self.amity.validate_room_type("L"), "Valid")
+        self.assertEqual(self.amity.validate_room_type("living"), "Invalid")
+        self.assertEqual(self.amity.validate_room_type("office"), "Invalid")
+        self.assertEqual(self.amity.validate_room_type("jjj"), "Invalid")
 
+        self.assertEqual(self.amity.validate_person_type("Fellow"), "Valid")
+        self.assertEqual(self.amity.validate_person_type("staff"), "Valid")
+        self.assertEqual(self.amity.validate_person_type("FelloW"), "Valid")
+        self.assertEqual(
+            self.amity.validate_person_type("anything"), "Invalid")
+        self.assertEqual(self.amity.validate_person_type("elow"), "Invalid")
+        self.assertEqual(self.amity.validate_person_type("staffk"), "Invalid")
+        self.assertEqual(self.amity.validate_person_type("Fellow"), "Valid")
 
-
-        self.assertEqual(self.amity.validate_person_type("Fellow"),"Valid")
-        self.assertEqual(self.amity.validate_person_type("staff"),"Valid")
-        self.assertEqual(self.amity.validate_person_type("FelloW"),"Valid")
-        self.assertEqual(self.amity.validate_person_type("anything"),"Invalid")
-        self.assertEqual(self.amity.validate_person_type("elow"),"Invalid")
-        self.assertEqual(self.amity.validate_person_type("staffk"),"Invalid")
-
-
+        self.assertEqual(self.amity.validate_email(
+            "clementm916@gmail.com"), "Valid")
+        self.assertEqual(self.amity.validate_email(
+            "1clementm916@gmail.co.ke"), "Valid")
+        self.assertEqual(self.amity.validate_email(
+            "clementm91_6@gmail.3com"), "Valid")
+        self.assertEqual(self.amity.validate_email(
+            "clementm-916@gmail"), "Invalid")
+        self.assertEqual(self.amity.validate_email(
+            "clementm-916gmail.3com"), "Invalid")
+        self.assertEqual(self.amity.validate_email(
+            "clementm-916@gmail3com"), "Invalid")
+        self.assertEqual(self.amity.validate_email(
+            "#clementm-916@gmail.3com"), "Invalid")
 
     def tearDown(self):
         pass

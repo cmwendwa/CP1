@@ -3,7 +3,7 @@
 """
 Amity Room Allocation System
 Usage:
-  create_room (l|o) <room_name>
+  create_room <room_type> <room_name>
   add_person <first_name> <second_name> <email> <FELLOW|STAFF> [wants_accommodation]
   reallocate_person <email> <new_room_name>
   load_people
@@ -16,11 +16,15 @@ Options:
     -h, --help  Show this screen and exit
 """
 
-import sys
 import cmd
+import shutil
 import click
 from docopt import docopt, DocoptExit
 from src.amity import Amity
+from ui_additions import playSpinner
+
+term_size = shutil.get_terminal_size((80, 20))
+term_width = term_size[0]
 
 
 amity = Amity()
@@ -45,9 +49,8 @@ def amity_docopt(func):
             return
 
         except SystemExit:
-            # The SystemExit exception prints the usage for --help
+            # The SystemExit exception prints help message
             # We do not need to do the print here.
-
             return
 
         return func(self, opt)
@@ -58,47 +61,106 @@ def amity_docopt(func):
     return fn
 
 
-def start():
-    arguments = __doc__
-    print(arguments)
-
 
 class AmityInteractive(cmd.Cmd):
-    intro = '>>>>*****************************************************<<<<\n' \
+    click.secho( "Loading amity ...",fg ='cyan')
+    playSpinner()
+    click.secho('>' * term_width, fg='cyan', bold=True)
+    intro = '\n' \
         + 'Welcome to Amity Room Allocation Application.\n' \
         + 'Add people, create rooms, allocate and reallocate the rooms.\n' \
-        + '(type help for a list of commands.)\n'\
-        + '>>>>*****************************************************<<<<'
-    prompt = '(Amity) $'
+        + '(type "help" for a list of commands.)\n'
+    click.secho(intro, fg="white", bold=True)
+    click.secho('>' * term_width, fg='yellow')
+    prompt = '(Amity) $ '
 
     @amity_docopt
     def do_create_room(self, args):
         """
         Creates a room(s) in amity
         Usage:
-          create_room (o|l) <room_name> ...
+          create_room <room_type> <room_name> ...
         """
-        # try:
-        for name in args['<room_name>']:
-            amity.create_room(name, args['<room_type>'])
-
-        # except:
-        #     pass
+        try:
+            room_type = args['<room_type>']
+            valid = amity.validate_room_type(room_type)
+            if valid == "Invalid":
+                error_msg = room_type + " is not a valid room type. \n" + \
+                    "Room type can only be 'o' for office or 'l' for livingspace; case insensitive."
+                click.secho(error_msg, fg='red')
+                return
+            count = 0
+            for name in args['<room_name>']:
+                if amity.validate_room_name(name) == "Invalid":
+                    click.secho(
+                        name + " is not a valid room name, change it and try again!!", fg='red')
+                    break
+                room = amity.create_room(name, room_type.upper())
+                if room == "Room could not be created: Room exists!":
+                    click.secho(room, fg='red')
+            if not count == 0:
+                msg = str(count) + "room(s) successfully added"
+                click.secho(msg, fg='green')
+        except:
+            click.secho("An unexpected error occured while running the comand",fg='red')
 
     @amity_docopt
     def do_add_person(self, args):
         """
         Add a person to amity.
         Usage:
-          add_person <first_name> <second_name> <email> (fellow|staff) [wants_accommodation]
+          add_person <first_name> <second_name> <email> <person_type> [--accommodation=N]
         """
         try:
-            pass
+            first_valid = amity.validate_person_name(args['<first_name>'])
+            if first_valid == "Invalid":
+                error_msg = args[
+                    '<first_name>'] + " is not a valid name, a person's name can only contain letters!!"
+                click.secho(error_msg, fg='red')
+                return
+            second_valid = amity.validate_person_name(args['<second_name>'])
+            if second_valid == "Invalid":
+                error_msg = args[
+                    '<second_name>'] + " is not a valid name, a person's name can only contain letters!!"
+                click.secho(error_msg, fg='red')
+                return
+            name = ' '.join([args['<first_name>'], args['<second_name>']])
+            if amity.validate_email(args['<email>']) == "Invalid":
+                error_msg = args['<email>'] + " is not a valid email."
+                click.secho(error_msg, fg='red')
 
+            email = args['<email>']
+            if amity.validate_person_type(args['<person_type>']) == "Invalid":
+                error_msg = args[
+                    '<person_type>'] + " is not valid person type.\n Person type can be either 'staff' or 'fellow'; case insensitive."
+                click.secho(error_msg, fg='red')
+
+            person_type = args['<person_type>']
+            if args['--accommodation'] == None:
+                args['--accommodation'] == 'N'
+            if args['--accommodation']:
+                if amity.validate_wants_accommodation(args['--accommodation']) == "Invalid":
+                    error_msg = "Accommodation can either be 'Y' for yes or 'N' for no"
+                    click.secho(error_msg,fg='red')
+                    return
+                wants_accommodation = args['--accommodation']
+            else: 
+                wants_accommodation = 'N'
+            
+
+            new_person = amity.add_person(
+                name, email, person_type.upper(), wants_accommodation.upper())
+
+            if new_person == "Email already used!":
+                click.secho(
+                    "Could not add a new person. Provided email already taken!!", fg='red')
+                return
+            elif new_person == -1:
+                click.secho("Unfortunately, could not add a new person", fg='red')
+            else:
+                click.secho(name + " added successfully to amity", fg='green')
         except:
-            pass
-
-        print ("Adding person")
+            click.secho("An unexpected error occured while running the comand",fg='red')
 
     @amity_docopt
     def do_reallocate_person(self, args):
@@ -107,14 +169,39 @@ class AmityInteractive(cmd.Cmd):
         Usage:
           reallocate_person <email> <new_room>
         """
+        try:
+            if amity.validate_email(args['<email>']) == "Invalid":
+                error_msg = args['<email>'] + " is not a valid email."
+                click.secho(error_msg, fg='red')
+                return
+            if amity.validate_room_name(args['<room_name>']) == "Invalid":
+                click.secho(
+                    name + " is not a valid room name, change and try again!!", fg='red')
 
-        #try:
-        amity.reallocate_person(args['<email>'], args['<new_room>'])
+            email = args['<email>']
+            new_room = args['<new_room>']
+            if not email in amity.all_persons:
+                click.secho(email + " not in the system!!", fg='red')
+            else:
+                if amity.all_persons[email].person_type == "Fellow":
+                    person = amity.fellows[email]
+                    if person.office == new_room or person.living_space == new_room:
+                        click.secho(
+                            "Been here all along,kindly let be!", fg='cyan')
+                        return
+                elif amity.all_persons[email].person_type == "Staff":
+                    person = amity.staff[email]
+                    if person.office == new_room:
+                        click.secho("Been here all along,kindly le be", fg='cyan')
+                        return
+                else:
+                    click.secho("An alien type discovered!!", fg='red')
+                    return
 
-        # except:
-        #     pass
+            amity.reallocate_person(args['<email>'], args['<new_room>'])
 
-        print("Allocating rooms")
+        except:
+            click.secho("An unexpected error occured while running the comand",fg='red')
 
     @amity_docopt
     def do_load_people(self, args):
@@ -122,14 +209,17 @@ class AmityInteractive(cmd.Cmd):
         Loads people from a text file.
         usage:
             load_people
+         """
+        try:
 
-        """
-        # try:
-        amity.load_pips_from_text_file()
-        # except:
-        #     pass
-        # finally:
-        #     print("Loading people")
+            status = amity.load_pips_from_text_file()
+
+
+            if not status == -1:
+                playSpinner()
+                click.secho("People loaded successfully!!", fg='green')
+        except:
+            click.secho("An unexpected error occured while running the comand",fg='red')
 
     @amity_docopt
     def do_print_allocations(self, args):
@@ -137,27 +227,41 @@ class AmityInteractive(cmd.Cmd):
         Prints a list of unallocated people to the screen. 
         Specifying the -o option here outputs the information to the txt file provided
         usage:
-            print_allocations [-o=filename] 
-        
+            print_allocations [--o=filename] 
+
         """
-        data = amity.get_print_allocations_data()
-        offices = data['offices']
-        living =  data['living']
+        if not args['--o']:
+            data = amity.get_print_allocations_data()
+            offices = data['offices']
+            living = data['living']
 
-        office_info = """"""
-        click.secho("OFFICES")
-        for office in offices:
 
-            click.secho(office['room'].capitalize(),fg='green',bold=True)
-            for name in office['names']:
-                click.secho(name,fg='white')
+            
+            click.secho("OFFICES",fg='cyan',bold=True)
+            for office in offices:
 
-        living_info =""""""
-        click.secho("LIVING SPACES")
-        for room in living:
-            click.secho(room['room'].capitalize(),fg='green',bold=True)
-            for name in room['names']:
-                click.secho(name,fg='white')
+                click.secho(office['room'].capitalize(), fg='green', bold=True)
+                for name in office['names']:
+                    click.secho(name, fg='white')
+
+           
+            click.secho("LIVING SPACES")
+            for room in living:
+                click.secho(room['room'].capitalize(), fg='green', bold=True)
+                for name in room['names']:
+                    click.secho(name, fg='white')
+
+
+
+
+        elif args['--o']:
+
+            print('Args:' + str(args['--o']))
+            if amity.validate_db_name(args['--o'])=="Invalid":
+                click.secho("Provided name is not an acceptable file name.",fg='red')
+                return
+            state = amity.get_print_allocations_data(args['--o'])
+
 
     @amity_docopt
     def do_print_unallocated(self, args):
@@ -165,24 +269,35 @@ class AmityInteractive(cmd.Cmd):
         Prints a list of unallocated people to the screen. 
         Specifying the -o option here outputs the information to the txt file provided
         usage:
-            print_unallocated [-o=filename]
+            print_unallocated [--o=filename]
         """
-        data = amity.get_print_unallocated_data()
-        offices = data['offices']
-        living =  data['living']
+         
+        if not args['--o']:
+            data = amity.get_print_unallocated_data()
+            if not data == -1:
+                offices = data['offices']
+                living = data['living']
+                click.secho("Unallocated to offices\n")
+                click.secho("Name\t\t id\t\t Email\t")
 
-        office_info = """"""
-        for office in offices:
-            click.secho(office['room'].capitalize(),fg='green',bold=True)
-            for name in office['names']:
-                click.secho(name,fg='white')
+                for person in offices:
+                    click.secho(person[0]+"\t"+person[1]+"\t"+person[2])
 
-        living_info =""""""
-        for room in living:
-            click.secho(room['room'].capitalize(),fg='green',bold=True)
-            for name in room['names']:
-                click.secho(name,fg='white')
-    
+                click.secho("\n\nUnallocated to living spaces")
+                click.secho("\nName\t\t id\t\t Email\t",fg='blue')
+                for person in living:
+                    click.secho(person[0]+"\t"+person[1]+"\t"+person[2])
+            else:
+                click.secho("Ooopsie!! No data to print.",fg='cyan')
+
+        elif args['--o']:
+            if amity.validate_db_name(args['--o']) == "Invalid":
+                click.secho("Provided name is not an acceptable file name.",fg='red')
+                return
+                
+            amity.get_print_unallocated_data(args['--o'])
+
+        
 
     @amity_docopt
     def do_print_room(self, args):
@@ -192,19 +307,17 @@ class AmityInteractive(cmd.Cmd):
         usage:
             print_room <room_name>
         """
-        # try:
-        data = amity.get_print_room_data(args['<room_name>'])
-        
-        click.secho(data['room'].upper(),fg='green',bold=True)
-        click.secho("+++++++++++++++++++++++++++++++++++++++++++++++++",fg='yellow')
-        for name in data['names']:
-            click.secho(name,fg='blue')
+        try:
+            data = amity.get_print_room_data(args['<room_name>'])
 
+            click.secho(data['room'].upper(), fg='green', bold=True)
+            click.secho(
+                "x"*term_width, fg='yellow')
+            for name in data['names']:
+                click.secho(name, fg='blue')
 
-        # except:
-        #     pass
-        # finally:
-        #     click.secho("Printing room")
+        except KeyError:
+            click.secho("The room you tried to print does not exist", fg='red')
 
     @amity_docopt
     def do_save_state(self, args):
@@ -213,7 +326,23 @@ class AmityInteractive(cmd.Cmd):
            usage:
             save_state [--db=sqlite_database]
         """
-        amity.save_state_to_db(args['sqlite_database'])
+        try:
+            if args['--db']:
+
+                if amity.validate_db_name(args['--db'])== "Valid":
+                    amity.save_state_to_db(args['--db'])
+                    playSpinner()
+                    click.secho("State saved successfully to database",fg='green')
+                else:
+                    click.secho("Provide a valid database name",fg='red')
+                    return
+            else:
+                amity.save_state_to_db()
+                playSpinner()
+                click.secho("State saved successfully to database",fg='green')
+        except:
+            click.secho("An unexpected error occured while running the comand",fg='red')
+
 
     @amity_docopt
     def do_load_state(self, args):
@@ -223,40 +352,32 @@ class AmityInteractive(cmd.Cmd):
             load_state <sqlite_database>
 
         """
+        try:
+            if args['<sqlite_database>']:
+                if amity.validate_db_name(args['<sqlite_database>']) == "Valid":
+                    
+                    playSpinner()
+                    state=amity.load_state_from_db(args['<sqlite_database>'])
+                    if not state == -1:
+                        click.secho("State loaded successfully from data",fg='green')
+                else:
+                    click.secho("Provide a valid database name",fg='red')
+                    return
 
-        amity.load_state_from_db(args['<sqlite_database>'])
+        except:
+            click.secho("An unexpected error occured while running the comand",fg='red')
 
 
-        print("Loading status")
 
     @amity_docopt
     def do_quit(self, args):
         exit()
 
-    def organize_data(self,data):
-        data = amity.get_print_unallocated_data()
-        offices = data['offices']
-        living =  data['living']
-
-        office_info = """"""
-
-        living_info =""""""
-
-        print(data)
-    
-
-
-# opt = docopt(__doc__, sys.argv[1:])
-
-# if opt['--interactive']:
-
 if __name__ == '__main__':
-    start()
-    AmityInteractive().cmdloop()
+    try:
+        
+        AmityInteractive().cmdloop()
 
-def validate_email(email):
-    if not re.match(r"[^A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$",email):
-        return "Valid"
-    else:
-        return "Invalid"
+    except:
+        pass
 

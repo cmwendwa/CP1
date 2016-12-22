@@ -1,40 +1,57 @@
 from abc import ABCMeta, abstractmethod
 import uuid
 
+
 class Person(object):
     __metaclass__ = ABCMeta
-    person_id = str(uuid.uuid4())[:8]
+    
 
-    def __init__(self, name,email):
+    def __init__(self, name, email):
+        self.person_id = str(uuid.uuid4())[:8]
         self.name = name
         self.email = email
         self.office = None
 
     @abstractmethod
     def person_type(self):
-        """"Return a string representing the type of person this is(staff | fellow)."""
+        """"
+        Return the type of person this is(staff | fellow).
+
+        """
 
     def set_office(self, office):
         self.office = office
 
     def __del__(self):
-        return None
+      return None
 
 
 class Staff(Person):
+    """"
+      Creates staff
+    """
+
     def __init__(self, name, email):
         super(Staff, self).__init__(name, email)
 
     @property
     def person_type(self):
-        """"Return a string representing the type of person this is(staff | fellow)."""
+        """"
+        Return the type of person this is(staff | fellow).
+
+        """
         return "Staff"
 
 
 class Fellow(Person):
+    """
+    Creates a fellow.
+
+    """
+
     living_space = None
 
-    def __init__(self, name,email, wants_accomodation='N'):
+    def __init__(self, name, email, wants_accomodation='N'):
         self.wants_accomodation = wants_accomodation
 
         super(Fellow, self).__init__(name, email)
@@ -47,5 +64,8 @@ class Fellow(Person):
 
     @property
     def person_type(self):
-        """"Return a string representing the type of person this is(staff | fellow)."""
+        """"
+        Return the type of person this is(staff | fellow).
+
+        """
         return "Fellow"

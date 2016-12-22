@@ -9,7 +9,7 @@ Base = declarative_base()
 class Persons(Base):
     __tablename__ = 'persons'
     id = Column(Integer, primary_key=True)
-    person_id = Column(String(20), unique=True)
+    person_id = Column(String(120), unique=True)
     person_type = Column(String(30))
     email = Column(String(120))
     name = Column(String(50))
@@ -42,7 +42,7 @@ class DbManager(object):
         self.name = db_name + '.sqlite'
     else:
         self.name = 'amity_db.sqlite'
-    self.engine = create_engine('sqlite:///' + self._name)
+    self.engine = create_engine('sqlite:///' + self.name)
     self.session = sessionmaker()
     self.session.configure(bind=self.engine)
     Base.metadata.create_all(self.engine)
