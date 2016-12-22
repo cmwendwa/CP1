@@ -1,4 +1,6 @@
 appnope==0.1.0
+click==6.6
+colorama==0.3.7
 coverage==4.2
 decorator==4.0.10
 docopt==0.6.2
