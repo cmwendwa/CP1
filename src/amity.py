@@ -45,7 +45,11 @@ class Amity(object):
 
                 return "Room created succesfully"
             else:
+<<<<<<< HEAD
                 return "Room could not be created: name taken!"
+=======
+                return "Room could not be created: Room exists!"
+>>>>>>> c4ead210076a6252d3332f96290dbcec46fc0521
 
         else:
             return -1
@@ -428,7 +432,11 @@ class Amity(object):
 
                 if person.wants_accomodation == "Y":
                     self.reallocate_person(
+<<<<<<< HEAD
                         person.email, person.allocated_living)
+=======
+                        self.fellows[person.email], person.allocated_living)
+>>>>>>> c4ead210076a6252d3332f96290dbcec46fc0521
 
     def validate_room_name(self, word):
         matches = re.match(r'^[A-Za-z][A-Za-z0-9]*$', word, re.IGNORECASE)

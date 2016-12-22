@@ -230,37 +230,44 @@ class AmityInteractive(cmd.Cmd):
             print_allocations [--o=filename] 
 
         """
-        if not args['--o']:
-            data = amity.get_print_allocations_data()
-            offices = data['offices']
-            living = data['living']
+
+        try:
+
+            if not args['--o']:
+                data = amity.get_print_allocations_data()
+                offices = data['offices']
+                living = data['living']
 
 
-            
-            click.secho("OFFICES",fg='cyan',bold=True)
-            for office in offices:
+                
+                click.secho("OFFICES",fg='cyan',bold=True)
+                for office in offices:
 
-                click.secho(office['room'].capitalize(), fg='green', bold=True)
-                for name in office['names']:
-                    click.secho(name, fg='white')
+                    click.secho(office['room'].capitalize(), fg='green', bold=True)
+                    for name in office['names']:
+                        click.secho(name, fg='white')
 
-           
-            click.secho("LIVING SPACES")
-            for room in living:
-                click.secho(room['room'].capitalize(), fg='green', bold=True)
-                for name in room['names']:
-                    click.secho(name, fg='white')
-
-
+               
+                click.secho("LIVING SPACES")
+                for room in living:
+                    click.secho(room['room'].capitalize(), fg='green', bold=True)
+                    for name in room['names']:
+                        click.secho(name, fg='white')
 
 
-        elif args['--o']:
 
-            print('Args:' + str(args['--o']))
-            if amity.validate_db_name(args['--o'])=="Invalid":
-                click.secho("Provided name is not an acceptable file name.",fg='red')
-                return
-            state = amity.get_print_allocations_data(args['--o'])
+
+            elif args['--o']:
+
+                print('Args:' + str(args['--o']))
+                if amity.validate_db_name(args['--o'])=="Invalid":
+                    click.secho("Provided name is not an acceptable file name.",fg='red')
+                    return
+                state = amity.get_print_allocations_data(args['--o'])
+
+        except:
+            click.secho("An unexpected error occured while running the comand",fg='red')
+
 
 
     @amity_docopt
@@ -271,31 +278,35 @@ class AmityInteractive(cmd.Cmd):
         usage:
             print_unallocated [--o=filename]
         """
-         
-        if not args['--o']:
-            data = amity.get_print_unallocated_data()
-            if not data == -1:
-                offices = data['offices']
-                living = data['living']
-                click.secho("Unallocated to offices\n")
-                click.secho("Name\t\t id\t\t Email\t")
 
-                for person in offices:
-                    click.secho(person[0]+"\t"+person[1]+"\t"+person[2])
+        try:
 
-                click.secho("\n\nUnallocated to living spaces")
-                click.secho("\nName\t\t id\t\t Email\t",fg='blue')
-                for person in living:
-                    click.secho(person[0]+"\t"+person[1]+"\t"+person[2])
-            else:
-                click.secho("Ooopsie!! No data to print.",fg='cyan')
+            if not args['--o']:
+                data = amity.get_print_unallocated_data()
+                if not data == -1:
+                    offices = data['offices']
+                    living = data['living']
+                    click.secho("Unallocated to offices\n")
+                    click.secho("Name\t\t id\t\t Email\t")
 
-        elif args['--o']:
-            if amity.validate_db_name(args['--o']) == "Invalid":
-                click.secho("Provided name is not an acceptable file name.",fg='red')
-                return
-                
-            amity.get_print_unallocated_data(args['--o'])
+                    for person in offices:
+                        click.secho(person[0]+"\t"+person[1]+"\t"+person[2])
+
+                    click.secho("\n\nUnallocated to living spaces")
+                    click.secho("\nName\t\t id\t\t Email\t",fg='blue')
+                    for person in living:
+                        click.secho(person[0]+"\t"+person[1]+"\t"+person[2])
+                else:
+                    click.secho("Ooopsie!! No data to print.",fg='cyan')
+
+            elif args['--o']:
+                if amity.validate_db_name(args['--o']) == "Invalid":
+                    click.secho("Provided name is not an acceptable file name.",fg='red')
+                    return
+                    
+                amity.get_print_unallocated_data(args['--o'])
+        except:
+            click.secho("An unexpected error occured while running the comand",fg='red')
 
         
 
@@ -371,6 +382,12 @@ class AmityInteractive(cmd.Cmd):
 
     @amity_docopt
     def do_quit(self, args):
+        """
+        Type to leave the app.
+        usage: 
+            quit 
+        """
+        click.sech("Thank you and see you again. BYEBYE!",fg='cyan')
         exit()
 
 if __name__ == '__main__':
