@@ -393,14 +393,13 @@ class AmityInteractive(cmd.Cmd):
         usage:
             quit
         """
-
         click.secho("Thank you and see you again. BYEBYE!", fg='cyan')
         exit()
 
 if __name__ == '__main__':
-    # try:
+    try:
 
-    AmityInteractive().cmdloop()
+        AmityInteractive().cmdloop()
 
-    # except:
-    # pass
+    except:
+        pass
