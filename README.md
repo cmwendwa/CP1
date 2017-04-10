@@ -1,3 +1,4 @@
+
 # Amity Application
 Amity is a console application that's used for room allocations. With this application you create rooms and add people who will be randomly assigned to the rooms. There are two types of rooms: offices and living spaces. There are two types of people in amity: staff and fellows. A fellow has the option to get a living room while a staff can only be allocated to an office. This comes with other capabilities as enlisted below.
 
@@ -132,5 +133,4 @@ Loads saved state from persistent database. The name must be passed.
         usage:
             load_state <sqlite_database>
 ```
-
 
